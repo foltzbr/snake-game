@@ -181,15 +181,21 @@ function showOverlay(title, sub, btn) {
   ovTitle.textContent = title; ovSub.textContent = sub; ovBtn.textContent = btn;
   overlay.classList.remove("hidden");
 }
-function draw() {
-  ctx.fillStyle = "#010409";
-  ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.strokeStyle = "rgba(57,211,83,0.07)";
-  ctx.lineWidth = 1;
+const bg = document.createElement("canvas");
+bg.width = cv.width; bg.height = cv.height;
+(function paintBg() {
+  const b = bg.getContext("2d");
+  b.fillStyle = "#010409";
+  b.fillRect(0, 0, bg.width, bg.height);
+  b.strokeStyle = "rgba(57,211,83,0.07)";
+  b.lineWidth = 1;
   for (let i = 1; i < N; i++) {
-    ctx.beginPath(); ctx.moveTo(i * CELL + 0.5, 0); ctx.lineTo(i * CELL + 0.5, cv.height); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, i * CELL + 0.5); ctx.lineTo(cv.width, i * CELL + 0.5); ctx.stroke();
+    b.beginPath(); b.moveTo(i * CELL + 0.5, 0); b.lineTo(i * CELL + 0.5, bg.height); b.stroke();
+    b.beginPath(); b.moveTo(0, i * CELL + 0.5); b.lineTo(bg.width, i * CELL + 0.5); b.stroke();
   }
+})();
+function draw() {
+  ctx.drawImage(bg, 0, 0);
   if (food) {
     const t = Date.now() / 300;
     const r = CELL * 0.32 + Math.sin(t) * 2;
@@ -201,13 +207,16 @@ function draw() {
     ctx.fill();
     ctx.restore();
   }
-  ctx.save();
-  ctx.shadowColor = "#39d353"; ctx.shadowBlur = 10;
-  snake.forEach((s, i) => {
-    ctx.fillStyle = i === 0 ? "#7ee787" : "#39d353";
-    const p = 2;
+  ctx.fillStyle = "#39d353";
+  for (let i = snake.length - 1; i >= 1; i--) {
+    const s = snake[i], p = 2;
     ctx.fillRect(s.x * CELL + p, s.y * CELL + p, CELL - p * 2, CELL - p * 2);
-  });
+  }
+  const hd = snake[0], hp = 2;
+  ctx.save();
+  ctx.shadowColor = "#39d353"; ctx.shadowBlur = 12;
+  ctx.fillStyle = "#7ee787";
+  ctx.fillRect(hd.x * CELL + hp, hd.y * CELL + hp, CELL - hp * 2, CELL - hp * 2);
   ctx.restore();
 }
 const KEYS = {
